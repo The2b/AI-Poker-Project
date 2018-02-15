@@ -1,0 +1,19 @@
+High card = Any card = 52/52 = 100%
+
+Pair: Any card * (3/51)
+
+2 Pair: Pair^2
+
+3 of a kind: Any card * (3/51) * (2/50)
+
+Straight = Any card * (4/51) * (4/50) * (4/49) * (4/48)
+
+Flush = Any card * (12/51) * (11/50) * (10/49) * (9/48)
+
+Full House = Any card * (3/51) * (Any card * (3/50) * (2/49))
+
+4 of a kind = Any card * (3/51) * (2/50) * (1/49) 
+
+Straight Flush = Any card * (1/51) * (1/50) * (1/49) * (1/48)
+
+I may need to double check this
