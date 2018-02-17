@@ -182,7 +182,7 @@ class Deck:
             return;
 
         if(cardNum > 52 | cardNum < 1):
-            printf("Invalid value for cards per deck, %d. Not going to touch it", cardNum);
+            print("Invalid value for cards per deck, ",cardNum, ". Not going to touch it");
             return;
 
         self.__cardsPerDeck = cardNum;
@@ -210,7 +210,6 @@ class Deck:
         cardsDup = copy.deepcopy(self.getCardIDs());
         if(discard != None):
             cardsDup = list(set(cardsDup) - set(discard)); # @TODO Make this work, at the moment cardsDup has pointers
-            print("Num cards in deck: ", len(cardsDup));
 
         else:
             discard = [];
@@ -251,9 +250,7 @@ class Deck:
 
         for index in range(0, numCards):
             cardsDelt.append(self.dealCard(discard));
-            print("Length of discard: ",len(discard));
 
-        print("Discard: ",discard);
         return cardsDelt; # No need to do anything w/ discard; Because of how it was declared locally, all changes will be made; Effecitvely passed by reference
 
     def resetDeck(self):
