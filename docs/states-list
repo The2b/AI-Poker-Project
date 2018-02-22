@@ -40,4 +40,7 @@ betToYou - The bet currently to you. Describes if there's a bet to you greater t
 
 guarenteedWin - Your worst possible hand is better than your opponents best possible hand. This is highly unlikely, as this could only really apply to 4 of a kind or a straight flush. May just ignore this.
 
+>= 2 cards left to show - Important for a significant number of hands, meaning we can skip a good number of calcs if this is untrue
+	May make this an integer.
+
 -- CUT HERE --
