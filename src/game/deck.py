@@ -13,6 +13,13 @@
  In effect, this is a portal to the cards, which are all stored in a list.
 '''
 
+'''
+ERROR CODES:
+    202: Will not crash the program, but tells the calling function to reset the deck before continuing, if they so choose
+    203: Trying to deal more than 52 cards * the number of decks. This will crash the program, since it can't deal that many cards
+    204: There are less than 0 cards left in the deck when calling for more to be delt. Kills the program, since it has to be an error such as corrupted memory.
+'''
+
 from enum import Enum, unique # Duh
 import sys # exit
 import copy # deepcopy
@@ -42,8 +49,7 @@ class Deck:
             # For each deck, add __numCardsPerDeck cards to the deck array
             for dIndex in range(0, self.__numDecks):
                 for cIndex in range(0, self.__numCardsPerDeck):
-                    self.getCards().append(Card(cIndex+1)); # Anon objects are fine in Python, right?
-
+                    self.getCards().append(Card(cIndex)); # Anon objects are fine in Python, right?
             
     # Getter for __numCardsPerDeck
     def getCardsPerDeck(self):
@@ -94,7 +100,7 @@ class Deck:
             return;
 
         if(deckCount < 1):
-            print("Invalid value for number of decks, %d. Not going to touch it", deckCount);
+            print("Invalid value for number of decks, ",deckCount,". Not going to touch it");
             return;
             
         self.__numDecks = deckCount;
@@ -108,9 +114,12 @@ class Deck:
         I'm leaving that second line in, but fuck python for not allowing overloading
         '''
 
-        cardsDup = copy.deepcopy(self.getCardIDs());
+        cardsDup = copy.deepcopy(self.getCards());
+        #print("getCardIDs: ",self.getCardIDs()); # @DEBUG
+        #print("CardsDup: ",cardsDup); # @DEBUG
+        #print("Discard: ",discard); # @DEBUG
         if(discard != None):
-            cardsDup = list(set(cardsDup) - set(discard)); # @TODO Make this work, at the moment cardsDup has pointers
+            cardsDup = list(set(cardsDup) - set(discard)); # @TODO Make this work, at the moment cardsDup has pointers. It's later now, and this isn't an issue. The poointers should be the same, since the same objects are being pushed to the discard pile; In fact this is better since it should be free to scale w/ additional decks.
 
         else:
             discard = [];
@@ -124,8 +133,16 @@ class Deck:
         since it'll be ugly to incorporate all that and the discard array, which I'd need to call the size of anyway.
         So why do the extra calcs? Verification isn't super important, given the inconsistent nature of the sising of arrays.
         '''
-
-        rngCard = cardsDup[random.randint(0,len(cardsDup)-1)];
+    
+        cardsLeft = len(cardsDup);
+        if(cardsLeft > 0):
+            rngCard = cardsDup[random.randint(0,cardsLeft-1)];
+        elif(cardsLeft == 0):
+            print("No more cards to deal. Try resetting the deck...");
+            return 202;
+        else:
+            print("Error: Cards left to deal is negative; This should never happen. Exiting...");
+            sys.exit(204);
 
         discard.append(rngCard);
 
@@ -138,15 +155,15 @@ class Deck:
         '''
 
         # Verify we're not asking for more than 52 cards, which is impossible.
-        if(numCard > 52):
-            print("Trying to deal more than 52 cards, which exceeds the limit. There's no reason to ask for this many, so something error'd out. Exiting...");
-            sys.exit(103);
+        if(numCards > (52*self.getNumDecks())):
+            print("Trying to deal more than ",52*self.getNumDecks()," cards, which exceeds the limit. Change the number of decks in the game.");
+            sys.exit(203);
         # If it's not defined, skip the next part
         if(discard != None):
             # Make sure we're not trying to deal more cards than we have in the deck
-            if(numCards > (self.getCardsPerDeck() - len(discard))):
+            if(numCards > ((self.getCardsPerDeck()*self.getNumDecks()) - len(discard))):
                 print("Too many cards trying to be delt; Try shuffling and go again")
-                return 102;
+                return 202;
 
         else:
             discard = [];

@@ -14,7 +14,7 @@ This will NOT handle events such as revealing new cards to agents
 from enum import Enum, unique # Duh
 from deck import Card, Deck # Card
 
-class stage(Enum):
+class Stage(Enum):
     # Since these stages are the only time we take action, they're the only ones we'll include for now
     FIRST_BETTING_ROUND = 0;
     FLOP_BETTING_ROUND = 1;
@@ -26,7 +26,7 @@ class Board:
     __NUM_CARDS_PER_DECK = 52; # Should never change
     __NUM_DECKS = 1;
 
-    __stage = 0;
+    __stage = Stage.FIRST_BETTING_ROUND;
 
     __deck = Deck(__NUM_CARDS_PER_DECK,__NUM_DECKS);
     __discardPile = [];
@@ -43,6 +43,8 @@ class Board:
     @param Card[] cardList
     '''
     def __init__(self): # @TODO May want to change it to require a deck, since we'll need to use the same deck to deal out agent's hands.
+        self.__deck.resetDeck();
+
         # Burn 1
         self.__deck.dealCard(self.__discardPile);
 
@@ -61,10 +63,6 @@ class Board:
         # Turn
         self.__river = self.__deck.dealCard(self.__discardPile);
 
-        print("Flop: ",self.__flop);
-        print("Turn: ",self.__turn);
-        print("River: ",self.__river);
-
     def getStage(self):
         return self.__stage;
 
@@ -73,10 +71,39 @@ class Board:
         return;
 
     def getFlop(self):
-        return self.__flop;
+        if(self.getStage().value > Stage.FIRST_BETTING_ROUND.value): # if currStage is after the first betting round...
+            return self.__flop;
+        return None;
 
     def getTurn(self):
-        return self.__turn;
+        if(self.getStage().value > Stage.FLOP_BETTING_ROUND.value): 
+            return self.__turn;
+        return None;
 
     def getRiver(self):
-        return self.__river;
+        if(self.getStage().value > Stage.TURN_BETTING_ROUND.value):
+            return self.__river;
+        return None;
+
+    def getPool(self):
+        cards = [];
+        flop = self.getFlop();
+        turn = self.getTurn();
+        river = self.getRiver();
+
+        if(flop == None):
+            return cards;
+
+        for index in flop:
+            cards.append(index);
+
+        cards.append(turn);
+        cards.append(river);
+
+        return cards;
+
+    def getDeck(self):
+        return self.__deck;
+
+    def getDiscard(self):
+        return self.__discardPile;
