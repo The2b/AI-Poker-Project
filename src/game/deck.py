@@ -35,6 +35,8 @@ class Deck:
 
     __cards = [];
 
+    rand = random.Random();
+
     '''
     Creates the Deck object and assigns the values required to define the proper number of cards and decks.
     The handlers for null values are in the set option, and therefore can be ignored
@@ -43,13 +45,16 @@ class Deck:
     @param int deckCount (optional)
     '''
     def __init__(self, cardsPerDeck, deckCount):
-            self.__setCardsPerDeck(cardsPerDeck);
-            self.__setNumDecks(deckCount);
+        # Clear the deck
+        __cards = [];
 
-            # For each deck, add __numCardsPerDeck cards to the deck array
-            for dIndex in range(0, self.__numDecks):
-                for cIndex in range(0, self.__numCardsPerDeck):
-                    self.getCards().append(Card(cIndex)); # Anon objects are fine in Python, right?
+        self.__setCardsPerDeck(cardsPerDeck);
+        self.__setNumDecks(deckCount);
+
+        # For each deck, add __numCardsPerDeck cards to the deck array
+        for dIndex in range(0, self.__numDecks):
+            for cIndex in range(0, self.__numCardsPerDeck):
+                self.getCards().append(Card(cIndex)); # Anon objects are fine in Python, right?
             
     # Getter for __numCardsPerDeck
     def getCardsPerDeck(self):
@@ -106,7 +111,7 @@ class Deck:
         self.__numDecks = deckCount;
         return;
 
-    def dealCard(self, discard):
+    def dealCard(self, discard): # @TODO I don't think discard is working
         '''
         Clone the __cards array, subtract the discard pile, RNG a value
         Also, we can overload this with no arguments to just RNG a card out of the array
@@ -119,7 +124,7 @@ class Deck:
         #print("CardsDup: ",cardsDup); # @DEBUG
         #print("Discard: ",discard); # @DEBUG
         if(discard != None):
-            cardsDup = list(set(cardsDup) - set(discard)); # @TODO Make this work, at the moment cardsDup has pointers. It's later now, and this isn't an issue. The poointers should be the same, since the same objects are being pushed to the discard pile; In fact this is better since it should be free to scale w/ additional decks.
+            cardsDup = list(set(cardsDup) - set(discard)); # @XTODO Make this work, at the moment cardsDup has pointers. It's later now, and this isn't an issue. The poointers should be the same, since the same objects are being pushed to the discard pile; In fact this is better since it should be free to scale w/ additional decks.
 
         else:
             discard = [];
@@ -136,15 +141,14 @@ class Deck:
     
         cardsLeft = len(cardsDup);
         if(cardsLeft > 0):
-            rngCard = cardsDup[random.randint(0,cardsLeft-1)];
+            rngCard = cardsDup.pop(self.rand.randint(0,cardsLeft-1));
+            discard.append(rngCard);
         elif(cardsLeft == 0):
             print("No more cards to deal. Try resetting the deck...");
             return 202;
         else:
             print("Error: Cards left to deal is negative; This should never happen. Exiting...");
             sys.exit(204);
-
-        discard.append(rngCard);
 
         return rngCard;
 

@@ -24,7 +24,7 @@ class Stage(Enum):
 class Board:
 
     __NUM_CARDS_PER_DECK = 52; # Should never change
-    __NUM_DECKS = 1;
+    __NUM_DECKS = 3;
 
     __stage = Stage.FIRST_BETTING_ROUND;
 
@@ -44,24 +44,25 @@ class Board:
     '''
     def __init__(self): # @TODO May want to change it to require a deck, since we'll need to use the same deck to deal out agent's hands.
         self.__deck.resetDeck();
+        self.resetDiscard();
 
         # Burn 1
-        self.__deck.dealCard(self.__discardPile);
+        self.__deck.dealCard(self.getDiscard());
 
         # Turn 3
-        self.__flop = self.__deck.dealCards(3, self.__discardPile);
+        self.__flop = self.__deck.dealCards(3, self.getDiscard());
 
         # Burn
-        self.__deck.dealCard(self.__discardPile);
+        self.__deck.dealCard(self.getDiscard());
 
         # Turn
-        self.__turn = self.__deck.dealCard(self.__discardPile);
+        self.__turn = self.__deck.dealCard(self.getDiscard());
 
         # Burn
-        self.__deck.dealCard(self.__discardPile);
+        self.__deck.dealCard(self.getDiscard());
 
         # Turn
-        self.__river = self.__deck.dealCard(self.__discardPile);
+        self.__river = self.__deck.dealCard(self.getDiscard());
 
     def getStage(self):
         return self.__stage;
@@ -102,8 +103,11 @@ class Board:
 
         return cards;
 
-    def getDeck(self):
+    def getDeck(self): # As far as I know, this is for testing purposes, and should not be public in production. @TODO
         return self.__deck;
 
-    def getDiscard(self):
+    def getDiscard(self): # Idk if this is useful. @TODO
         return self.__discardPile;
+
+    def resetDiscard(self):
+        self.__discardPile = [];

@@ -38,7 +38,6 @@ Error Codes:
 from enum import Enum, unique # Duh
 import sys # exit
 import copy # deepcopy
-import random # randint
 import operator # sub
 
 @unique
@@ -115,7 +114,7 @@ class Card:
     __cardID = -1; # Must be init'd, or it'll be super inconsistent on calls. Uses the CardIDs enum above. Wraps on overflow, not on underflow
     __cardNum = 0; # Must be init'd. Stored so we don't waste time on a bunch of division
     __cardSuit = -1; # Same as above
-    
+
     '''
     Create a Card object. Init's card values based on the given ID.
     If an ID is greater than 52, modulo it by 52. TBH this is a week later and I don't know why I chose
