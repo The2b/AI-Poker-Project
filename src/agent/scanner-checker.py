@@ -8,14 +8,18 @@ scanner = HandScanner();
 board = Board();
 deck = board.getDeck();
 
-board.setStage(Stage.RIVER_BETTING_ROUND);
 
-cardList = deck.dealCards(2, board.getDiscard());
-for card in board.getPool():
-    cardList.append(card);
+for n in range(10):
+    board.setStage(Stage.RIVER_BETTING_ROUND);
 
-print("Card list: ", [card.getCardID().name for card in cardList]);
+    cardList = deck.dealCards(2);
+    for card in board.getPool():
+        cardList.append(card);
 
-bestHand = scanner.checkBestHand(cardList);
+    print(len(deck.getCards()),len(board.getDeck().getCards()));
 
-print("Best hand: ", bestHand.name);
+    print("Card list: ", [card.getCardID().name for card in cardList]);
+
+    bestHand = scanner.checkBestHand(cardList);
+
+    print("Best hand: ", bestHand.name);

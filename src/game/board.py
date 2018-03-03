@@ -44,25 +44,24 @@ class Board:
     '''
     def __init__(self): # @TODO May want to change it to require a deck, since we'll need to use the same deck to deal out agent's hands.
         self.__deck.resetDeck();
-        self.resetDiscard();
 
         # Burn 1
-        self.__deck.dealCard(self.getDiscard());
+        self.__deck.dealCard();
 
         # Turn 3
-        self.__flop = self.__deck.dealCards(3, self.getDiscard());
+        self.__flop = self.__deck.dealCards(3);
 
         # Burn
-        self.__deck.dealCard(self.getDiscard());
+        self.__deck.dealCard();
 
         # Turn
-        self.__turn = self.__deck.dealCard(self.getDiscard());
+        self.__turn = self.__deck.dealCard();
 
         # Burn
-        self.__deck.dealCard(self.getDiscard());
+        self.__deck.dealCard();
 
         # Turn
-        self.__river = self.__deck.dealCard(self.getDiscard());
+        self.__river = self.__deck.dealCard();
 
     def getStage(self):
         return self.__stage;
@@ -105,9 +104,3 @@ class Board:
 
     def getDeck(self): # As far as I know, this is for testing purposes, and should not be public in production. @TODO
         return self.__deck;
-
-    def getDiscard(self): # Idk if this is useful. @TODO
-        return self.__discardPile;
-
-    def resetDiscard(self):
-        self.__discardPile = [];

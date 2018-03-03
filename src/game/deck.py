@@ -111,7 +111,7 @@ class Deck:
         self.__numDecks = deckCount;
         return;
 
-    def dealCard(self, discard): # @TODO I don't think discard is working
+    def dealCard(self): # @TODO I don't think discard is working
         '''
         Clone the __cards array, subtract the discard pile, RNG a value
         Also, we can overload this with no arguments to just RNG a card out of the array
@@ -120,14 +120,6 @@ class Deck:
         '''
 
         cardsDup = copy.deepcopy(self.getCards());
-        #print("getCardIDs: ",self.getCardIDs()); # @DEBUG
-        #print("CardsDup: ",cardsDup); # @DEBUG
-        #print("Discard: ",discard); # @DEBUG
-        if(discard != None):
-            cardsDup = list(set(cardsDup) - set(discard)); # @XTODO Make this work, at the moment cardsDup has pointers. It's later now, and this isn't an issue. The poointers should be the same, since the same objects are being pushed to the discard pile; In fact this is better since it should be free to scale w/ additional decks.
-
-        else:
-            discard = [];
 
         '''
         I don't want to use os.random since I don't know how many numbers need to be generated,
@@ -141,8 +133,7 @@ class Deck:
     
         cardsLeft = len(cardsDup);
         if(cardsLeft > 0):
-            rngCard = cardsDup.pop(self.rand.randint(0,cardsLeft-1));
-            discard.append(rngCard);
+            rngCard = self.getCards().pop(self.rand.randint(0,cardsLeft-1));
         elif(cardsLeft == 0):
             print("No more cards to deal. Try resetting the deck...");
             return 202;
@@ -152,7 +143,7 @@ class Deck:
 
         return rngCard;
 
-    def dealCards(self, numCards, discard):
+    def dealCards(self, numCards):
         '''
         Return an array of numCards random cards. Use a discard array to avoid dup's
         Using this, we can deal out ((2*numPlayers)+5) cards in order, and classify them after
@@ -162,20 +153,16 @@ class Deck:
         if(numCards > (52*self.getNumDecks())):
             print("Trying to deal more than ",52*self.getNumDecks()," cards, which exceeds the limit. Change the number of decks in the game.");
             sys.exit(203);
-        # If it's not defined, skip the next part
-        if(discard != None):
-            # Make sure we're not trying to deal more cards than we have in the deck
-            if(numCards > ((self.getCardsPerDeck()*self.getNumDecks()) - len(discard))):
-                print("Too many cards trying to be delt; Try shuffling and go again")
-                return 202;
-
-        else:
-            discard = [];
-
+        
+        # Verify we're not trying to deal more cards than the deck has. If we do, return -1 and try again.
+        if(numCards > len(self.getCards())):
+            print("Trying to deal more cards than are in the deck at this point in time. Try resetting the deck and try again.");
+            return -1;
+        
         cardsDelt = [];
 
         for index in range(0, numCards):
-            cardsDelt.append(self.dealCard(discard));
+            cardsDelt.append(self.dealCard());
 
         return cardsDelt; # No need to do anything w/ discard; Because of how it was declared locally, all changes will be made; Effecitvely passed by reference
 
