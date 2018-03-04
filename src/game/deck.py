@@ -46,7 +46,7 @@ class Deck:
     '''
     def __init__(self, cardsPerDeck, deckCount):
         # Clear the deck
-        __cards = [];
+        self.__cards = [];
 
         self.__setCardsPerDeck(cardsPerDeck);
         self.__setNumDecks(deckCount);
