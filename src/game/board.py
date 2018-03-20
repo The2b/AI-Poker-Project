@@ -21,10 +21,14 @@ class Stage(Enum):
     TURN_BETTING_ROUND = 2;
     RIVER_BETTING_ROUND = 3;
 
+    CARDS_ON_BOARD = [0,3,4,5];
+
 class Board:
+    __NUM_CARDS_IN_HAND = 2;
+    __TOTAL_CARDS_ON_BOARD = 5;
 
     __NUM_CARDS_PER_DECK = 52; # Should never change
-    __NUM_DECKS = 3;
+    __NUM_DECKS = 1;
 
     __stage = Stage.FIRST_BETTING_ROUND;
 
@@ -70,6 +74,17 @@ class Board:
         self.__stage = stageID;
         return;
 
+    def getCardsOnBoard(self):
+        if(self.getStage().value == Stage.FIRST_BETTING_ROUND.value):
+            return 0;
+        elif(self.getStage().value == Stage.FLOP_BETTING_ROUND.value):
+            return 3;
+        elif(self.getStage().value == Stage.TURN_BETTING_ROUND.value):
+            return 4;
+        elif(self.getStage().value == Stage.RIVER_BETTING_ROUND.value):
+            return 5;
+        return -1;
+
     def getFlop(self):
         if(self.getStage().value > Stage.FIRST_BETTING_ROUND.value): # if currStage is after the first betting round...
             return self.__flop;
@@ -88,19 +103,31 @@ class Board:
     def getPool(self):
         cards = [];
         flop = self.getFlop();
-        turn = self.getTurn();
-        river = self.getRiver();
-
-        if(flop == None):
+        if(not flop):
             return cards;
+        
+        turn = self.getTurn();
+        if(not turn):
+            return flop;
+
+        river = self.getRiver();
 
         for index in flop:
             cards.append(index);
 
-        cards.append(turn);
-        cards.append(river);
+        if(turn):
+            cards.append(turn);
+
+        if(river):
+            cards.append(river);
 
         return cards;
+
+    def getCardsPerHand(self):
+        return self.__NUM_CARDS_IN_HAND;
+
+    def getTotalCardsOnBoard(self):
+        return self.__TOTAL_CARDS_ON_BOARD;
 
     def getDeck(self): # As far as I know, this is for testing purposes, and should not be public in production. @TODO
         return self.__deck;

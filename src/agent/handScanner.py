@@ -24,7 +24,7 @@ class HandIDs(Enum):
     STRAIGHT_FLUSH = 8;
     FIVE_OF_A_KIND = 9;
 
-class HandScanner:
+class HandScanner: # @TODO make this not a class
 
     '''
     Checks the parent agent's hand and the board to see if we have a pair in our hand.
@@ -108,21 +108,29 @@ class HandScanner:
         If the counter ever reaches 5, break the loop and return true.
         '''
 
+        NUM_ACE_LOW = 1;
+        NUM_ACE_HIGH = 14;
+
         if(len(cards) >= 5):
             cardNums = [card.getCardNum() for card in cards];
             cardNums.sort();
-            counter = 0;
+            counter = 1;
+
+            # Add in ace highs
+            for i in range(cardNums.count(NUM_ACE_LOW)):
+                cardNums.append(NUM_ACE_HIGH);
 
             for index in range(1,len(cardNums)): # @TODO Add in an exception for Aces to be high or low
                 if(cardNums[index] == (cardNums[index-1]+1)): # If this card is one higher than the last card, bump the counter and check its status
                     counter += 1;
-                    if(counter >= 4): # It's 4 here because we aren't counting the number of cards in a row, but the nuber of increments between the cards.
+                    if(counter >= 5):
                         return True;
                     continue;
                 elif(cardNums[index] == (cardNums[index-1])):
                     continue;
-                counter = 0; # If it got here, the last card was neither part of the sequence nor a dup, and therefore the counter should reset
-            return False;
+                counter = 1; # If it got here, the last card was neither part of the sequence nor a dup, and therefore the counter should reset
+
+        return False;
 
     '''
     Checks if the parents cards have a flush. Don't check pre-flop. If there's a flush, it returns the cards' IDs. If not, returns 0
@@ -207,7 +215,7 @@ class HandScanner:
         activeSuit = 0; # This is so that if we do have a flush, we can build a list of all the cards of just that suit and check if that list has a straight
         for suit in Suits:
             count = cardSuits.count(suit);
-            if(count >= 3):
+            if(count >= 5):
                 activeSuit = suit;
                 break;
             

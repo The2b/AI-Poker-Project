@@ -68,6 +68,9 @@ class Deck:
     def getCards(self):
         return self.__cards;
 
+    def getCardsLeft(self):
+        return len(self.getCards());
+
     '''
     Pull a list of all the card IDs in the deck
 
