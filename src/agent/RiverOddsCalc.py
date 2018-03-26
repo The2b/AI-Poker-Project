@@ -9,12 +9,12 @@
 This will handle the odds that any given hand will complete on the river. The turn-to-river calcs will be highly dependent on this.
 '''
 
-from deck import Deck
-from board import Board, Stage
-from card import Suits
-from handScanner import HandScanner
+from Deck import Deck
+from Board import Board, Stage
+from Card import Suits
+from HandScanner import HandScanner
 
-import copy # Deepcopy
+#import copy # Deepcopy
 
 def pairRiverOdds(cards, board, agentFlags=0):
     # This method doesn't check if we already have a pair. That should be done by the agent before this.
@@ -56,17 +56,18 @@ def threeRiverOdds(cards, board, agentFlags=0):
 
 '''
 This function is a prototype which reverts to the inner or outer straight functions, based on what's appropriate. Has its own checking, but that may be outsourced later
+
+@bigO linear
 '''
 def straightRiverOdds(cards, board, agentFlags=0):
-    # Check for an outer one first. Very similar to the handScanner's straight implementation, but checking for 4 in a row instead of five
-    cardNumsFirst = [card.getCardNum() for card in cards];
-    cardNumsSet = set(cardNumsFirst);
-    cardNums = list(cardNumsSet);
+    # Check for an outer one first. Very similar to the HandScanner's straight implementation, but checking for 4 in a row instead of five
+    cardNums = list(set([card.getCardNum() for card in cards]));
     cardNums.sort();
     counter = 1;
     NUM_ACE_HIGH = 14;
     NUM_ACE_LOW = 1;
 
+    # O(n)
     # Check for outer straights
     for index in range(1,len(cardNums)):
         if(cardNums[index] == cardNums[index-1] + 1):
@@ -81,6 +82,8 @@ def straightRiverOdds(cards, board, agentFlags=0):
     counter = 1;
     lastSkip = 0; # This holds the number of steps back we had our last gap, to compensate for situations where you have X_X_XXX, which would return false when it should find odds for an inner straight
     innerFlag = False;
+
+    # O(n)
     for index in range(1,len(cardNums)):
         if(cardNums[index] == cardNums[index-1] + 1):
             counter += 1;
@@ -190,7 +193,7 @@ def straightFlushRiverOdds(cards, board, agentFlags=0):
         return 0;
     activeSuit = Suits(suitCount.index(max(suitCount)));
 
-    # Check for an outer one first. Very similar to the handScanner's straight implementation, but checking for 4 in a row instead of five
+    # Check for an outer one first. Very similar to the HandScanner's straight implementation, but checking for 4 in a row instead of five
     cardNumsFirst = [card.getCardNum() for card in cards if card.getCardSuit() == activeSuit];
     cardNumsSet = set(cardNumsFirst);
     cardNums = list(cardNumsSet);

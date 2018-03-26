@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-from handScanner import HandScanner
-from board import Board, Stage
-import card
+from HandScanner import HandScanner
+from Board import Board, Stage
+import Card
 
 scanner = HandScanner();
 board = Board();

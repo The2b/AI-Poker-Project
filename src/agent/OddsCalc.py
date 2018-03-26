@@ -17,14 +17,14 @@ The agent's gameloop should only use thise func's if their respective has* flags
 I may change this such that it calcs based on 
 '''
 
-import board as Board
-import deck as Deck
+import Board as Board
+import Deck as Deck
 
 '''
 Calculates the odds of a hand having a playable high-card
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags=0
 
 @return odds
@@ -95,12 +95,12 @@ def pairTurnToRiver(board, agentFlags=0):
 '''
 Calculates the odds of a hand having a playable
 
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def pair(board, agentFlags): # @TODO Fix this shit up
+def pair(board, agentFlags=0): # @TODO Fix this shit up
     if(agentFlags.hasPair):
         return 1;
 
@@ -113,7 +113,7 @@ def pair(board, agentFlags): # @TODO Fix this shit up
 
     # First, we need to calculate the number of outs we have
     # We have X cards showing, and Y cards to reveal. The deck has Z cards left.
-    # Since we don't have a pair, for each card showing, there are (4*Decks-1) outs
+    # Since we don't have a pair, for each card showing, there are (4*decks-1) outs
     outsPerCard = ((board.getDeck().getNumDecks())*4)-1;
 
     # Now that we have that number, we need to calc the odds we hit our pair from our current stage to the river
@@ -129,12 +129,12 @@ def pair(board, agentFlags): # @TODO Fix this shit up
 Calculates the odds of a hand having 2 playable pairs
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def twoPair(cards, board, agentFlags):
+def twoPair(cards, board, agentFlags=0):
     '''
     We can use the pair tester to shortcut this
     1) If we don't have a pair, and there's <= 1 card left to reveal, return 0
@@ -157,19 +157,19 @@ def twoPair(cards, board, agentFlags):
 '''
 Calculates the odds a hand will have 2 playable pairs from the turn to the river
 '''
-def twoPairTurnToRiver(board, agentFlags):
+def twoPairTurnToRiver(board, agentFlags=0):
     pass;
 
 '''
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def threeOfAKind(cards, board, agentFlags):
+def threeOfAKind(cards, board, agentFlags=0):
     '''
     This one's easier. Take it in a few steps.
         1) For each card we have, check if there's a three of a kind. If so, return 1
@@ -188,24 +188,24 @@ def threeOfAKind(cards, board, agentFlags):
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def straight(cards, board, agentFlags):
+def straight(cards, board, agentFlags=0):
     pass;
 
 '''
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def flush(cards, board, agentFlags):
+def flush(cards, board, agentFlags=0):
     '''
     Similar to the three of a kind, we can take this in steps
     1) Do we have the flush already? If so, return 1. Only check post-flop.
@@ -216,12 +216,12 @@ def flush(cards, board, agentFlags):
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def fullHouse(cards, board, agentFlags):
+def fullHouse(cards, board, agentFlags=0):
     '''
     We can shortcut this with the three-of-a-kind function. If that's 0, this is 0.
     While we can do the same with the pair, if that comes up true, this will.
@@ -233,12 +233,12 @@ def fullHouse(cards, board, agentFlags):
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def fourOfAKind(cards, board, agentFlags):
+def fourOfAKind(cards, board, agentFlags=0):
     '''
     We can shortcut this with the three-of-a-kind function. If that's 0, this is 0.
     If we don't already have a three of a kind, and there's <= 1 card left, return 0
@@ -248,12 +248,12 @@ def fourOfAKind(cards, board, agentFlags):
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
-def straightFlush(cards, board, agentFlags):
+def straightFlush(cards, board, agentFlags=0):
     '''
     We can shortcut this pretty effectively, actually
     1) Can we get a flush? If not, return 0
@@ -264,13 +264,13 @@ def straightFlush(cards, board, agentFlags):
 Calculates the odds of a hand having a playable
 
 @param Card[] cards
-@param board
+@param Board board
 @param agentFlags
 
 @return odds
 '''
 
-def fiveOfAKind(cards, board, agentFlags):
+def fiveOfAKind(cards, board, agentFlags=0):
     '''
     If we only have one deck, return 0
     If we previously determined we can't get a four of a kind, return 0

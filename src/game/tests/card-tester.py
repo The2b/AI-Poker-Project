@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from card import Card
+from Card import Card
 
 MyCard = Card(30);
 

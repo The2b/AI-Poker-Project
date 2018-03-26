@@ -8,7 +8,7 @@ This is where I'm going to keep the functions to see what we have in our hand
 '''
 
 from enum import Enum, unique
-from card import Card, Suits
+from Card import Card, Suits
 import copy
 
 @unique
@@ -120,7 +120,7 @@ class HandScanner: # @TODO make this not a class
             for i in range(cardNums.count(NUM_ACE_LOW)):
                 cardNums.append(NUM_ACE_HIGH);
 
-            for index in range(1,len(cardNums)): # @TODO Add in an exception for Aces to be high or low
+            for index in range(1,len(cardNums)):
                 if(cardNums[index] == (cardNums[index-1]+1)): # If this card is one higher than the last card, bump the counter and check its status
                     counter += 1;
                     if(counter >= 5):
@@ -140,7 +140,7 @@ class HandScanner: # @TODO make this not a class
     '''
     def checkFlush(self, cards):
         '''
-        1) Create a list to hold Suit values
+        1) Create a list to hold Suits values
         2) Populate the list based off the cards array.
         3) Count the number of times each value appears. If any appears 3 times, break. If >= 5, return the card IDs.
         '''

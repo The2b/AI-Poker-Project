@@ -4,7 +4,7 @@
 @author Thomas Lenz <thomas.lenz96@gmail.com> AS The2b
 @date 22 Feb 2018
 @project Texas Hold'em AI
-@file card.py
+@file Card.py
 @ErrorID 1XX
 '''
 
@@ -116,7 +116,7 @@ class Card:
     __cardSuit = -1; # Same as above
 
     '''
-    Create a Card object. Init's card values based on the given ID.
+    Create a card object. Init's card values based on the given ID.
     If an ID is greater than 52, modulo it by 52. TBH this is a week later and I don't know why I chose
         that method to handle errors. But I'm sure I had a reason. I REMEMBERED!!! It's so that if we have multiple decks, it'll be handled correctly.
     If the given ID is less than 1, error out
@@ -153,7 +153,7 @@ class Card:
     '''
     Takes the int id and returns the suit of the card. Same division thing as above
 
-    @param cardID
+    @param CardID
     @return suitID
     '''
     def __calcCardSuit(self):
@@ -167,7 +167,7 @@ class Card:
     '''
     The function for the outside world to pull the card ID. This will pull the enumerated name, not value
 
-    @return CardIDs cardID
+    @return CardIDs CardID
     '''
     def getCardID(self):
         return self.__cardID;

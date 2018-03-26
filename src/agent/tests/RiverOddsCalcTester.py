@@ -1,8 +1,8 @@
-from deck import Deck
-from board import Board, Stage
-from card import Suits
-import card
-from handScanner import HandScanner
+from Deck import Deck
+from Board import Board, Stage
+from Card import Suits
+import Card
+from HandScanner import HandScanner
 import RiverOddsCalc as RiverOddsCalc
 
 def calcOdds(board, hand):

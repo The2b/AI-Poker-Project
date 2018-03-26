@@ -4,7 +4,7 @@
 @author Thomas Lenz <thomas.lenz96@gmail.com> AS The2b
 @date 15 Feb 2018
 @project Texas Hold'em AI
-@file deck.py
+@file Deck.py
 @ErrorID 2XX
 '''
 
@@ -25,7 +25,7 @@ import sys # exit
 import copy # deepcopy
 import random # randint
 import operator # sub
-from card import Card # Duh. It shouldn't access any enumeration directly
+from Card import Card # Duh. It shouldn't access any enumeration directly
 
 class Deck:
 
@@ -38,7 +38,7 @@ class Deck:
     rand = random.Random();
 
     '''
-    Creates the Deck object and assigns the values required to define the proper number of cards and decks.
+    Creates the deck object and assigns the values required to define the proper number of cards and decks.
     The handlers for null values are in the set option, and therefore can be ignored
 
     @param int cardsPerDeck (optional)
@@ -54,7 +54,7 @@ class Deck:
         # For each deck, add __numCardsPerDeck cards to the deck array
         for dIndex in range(0, self.__numDecks):
             for cIndex in range(0, self.__numCardsPerDeck):
-                self.getCards().append(Card(cIndex)); # Anon objects are fine in Python, right?
+                self.getCards().append(card(cIndex)); # Anon objects are fine in Python, right?
             
     # Getter for __numCardsPerDeck
     def getCardsPerDeck(self):
@@ -116,15 +116,6 @@ class Deck:
 
     def dealCard(self): # @TODO I don't think discard is working
         '''
-        Clone the __cards array, subtract the discard pile, RNG a value
-        Also, we can overload this with no arguments to just RNG a card out of the array
-
-        I'm leaving that second line in, but fuck python for not allowing overloading
-        '''
-
-        cardsDup = copy.deepcopy(self.getCards());
-
-        '''
         I don't want to use os.random since I don't know how many numbers need to be generated,
         and don't want the program to lock up waiting in an uninterruptable sleep waiting for
         entropy that won't be generated. If I notice issues with RNG (which I almost certainly won't, cuz human), I'll change it
@@ -134,14 +125,14 @@ class Deck:
         So why do the extra calcs? Verification isn't super important, given the inconsistent nature of the sising of arrays.
         '''
     
-        cardsLeft = len(cardsDup);
+        cardsLeft = self.getCardsLeft();
         if(cardsLeft > 0):
             rngCard = self.getCards().pop(self.rand.randint(0,cardsLeft-1));
         elif(cardsLeft == 0):
             print("No more cards to deal. Try resetting the deck...");
             return 202;
         else:
-            print("Error: Cards left to deal is negative; This should never happen. Exiting...");
+            print("Error: cards left to deal is negative; This should never happen. Exiting...");
             sys.exit(204);
 
         return rngCard;

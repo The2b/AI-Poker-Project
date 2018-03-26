@@ -2,9 +2,9 @@
 @author Thomas Lenz <thomas.lenz96@gmail.com> AS The2b
 @date 17 February 2018
 @project Texas Hold'em AI
-@file board.py
+@file Board.py
 
-This file will hold a class, called Board. This class will contain all the info in a more clear way on the board,
+This file will hold a class, called Board. This class will contain all the info in a more clear way on the Board,
 
 This will make it more clear what's what than a list, as well as easier for other stuff to handle.
 
@@ -12,7 +12,7 @@ This will NOT handle events such as revealing new cards to agents
 '''
 
 from enum import Enum, unique # Duh
-from deck import Card, Deck # Card
+from Deck import Card, Deck # Card
 
 class Stage(Enum):
     # Since these stages are the only time we take action, they're the only ones we'll include for now
@@ -41,7 +41,7 @@ class Board:
     __river = None;
 
     '''
-    Deal all cards onto the board
+    Deal all cards onto the Board
     Burning cards just to emulate the game as closely as possible.
 
     @param Card[] cardList

@@ -11,10 +11,10 @@
 Will hold the functions for the generators to parallelize
 '''
 
-from handScanner import HandScanner, HandIDs
-from board import Board, Stage
-from card import Card
-from deck import Deck
+from HandScanner import HandScanner, HandIDs
+from Board import Board, Stage
+from Card import Card
+from Deck import Deck
 
 import multiprocessing as mp
 

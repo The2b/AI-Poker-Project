@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-from board import Board, Stage
+from Board import Board, Stage
 
 board = Board();
 
@@ -9,5 +9,5 @@ for index in Stage:
     print("Index Value: ",index.value);
     print("Stage: ",board.getStage());
     print("Pool: ",board.getPool());
-    print("Discard: ",board.getDiscard());
+    print("DisCard: ",board.getDisCard());
     print("Deck: ", board.getDeck());

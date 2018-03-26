@@ -15,10 +15,10 @@ I'm using it for a couple of things.
     3) To gather data on odds so I don't need to do it myself
 '''
 
-from handScanner import HandScanner, HandIDs
-from board import Board, Stage
-from card import Card
-from deck import Deck
+from HandScanner import HandScanner, HandIDs
+from Board import Board, Stage
+from Card import Card
+from Deck import Deck
 
 import WorkerFunctions
 
