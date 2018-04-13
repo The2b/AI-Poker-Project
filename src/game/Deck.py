@@ -44,7 +44,7 @@ class Deck:
     @param int cardsPerDeck (optional)
     @param int deckCount (optional)
     '''
-    def __init__(self, cardsPerDeck, deckCount):
+    def __init__(self, cardsPerDeck=52, deckCount=1):
         # Clear the deck
         self.__cards = [];
 
@@ -54,7 +54,7 @@ class Deck:
         # For each deck, add __numCardsPerDeck cards to the deck array
         for dIndex in range(0, self.__numDecks):
             for cIndex in range(0, self.__numCardsPerDeck):
-                self.getCards().append(card(cIndex)); # Anon objects are fine in Python, right?
+                self.getCards().append(Card(cIndex)); # Anon objects are fine in Python, right?
             
     # Getter for __numCardsPerDeck
     def getCardsPerDeck(self):
@@ -114,7 +114,7 @@ class Deck:
         self.__numDecks = deckCount;
         return;
 
-    def dealCard(self): # @TODO I don't think discard is working
+    def dealCard(self):
         '''
         I don't want to use os.random since I don't know how many numbers need to be generated,
         and don't want the program to lock up waiting in an uninterruptable sleep waiting for

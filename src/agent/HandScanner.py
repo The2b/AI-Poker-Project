@@ -5,11 +5,18 @@
 @file HandScanner.py
 
 This is where I'm going to keep the functions to see what we have in our hand
+
+@errorcodes
+    301: best hand does not have a hand value in declareWinner()
+    302: hand does not have a best hand in checkBestHand()
 '''
 
 from enum import Enum, unique
 from Card import Card, Suits
 import copy
+import sys
+
+#import pdb # @DEBUG
 
 @unique
 class HandIDs(Enum):
@@ -26,9 +33,13 @@ class HandIDs(Enum):
 
 class HandScanner: # @TODO make this not a class
 
+    def checkHighCard(self, cards):
+        return (max([card.getCardNum() for card in cards]));
+
     '''
     Checks the parent agent's hand and the board to see if we have a pair in our hand.
     Does **NOT** calculate odds. It does, however, verify there are enough cards to form a hand before it checks anything.
+    Returns -1 if there is no pair
 
     @param Card cards[]
     @return int pairNum
@@ -46,14 +57,14 @@ class HandScanner: # @TODO make this not a class
         if(pairs): # Basically, if this list is composed based on the restrictions we have set, there's at least one pair.
             return max(pairs);
 
-        return 0;
+        return -1;
 
 
     '''
-    Checks if the parents cards has 2 pairs
+    Checks if the parents cards has 2 pairs, returns all pairs if so. If not, returns -1
 
     @param Card cards[]
-    @return boolean hasTwoPair
+    @return int pairs[]
     '''
     def checkTwoPair(self, cards):
         '''
@@ -62,14 +73,18 @@ class HandScanner: # @TODO make this not a class
         cardNums = [card.getCardNum() for card in cards];
         pairCards = [nums for nums in cardNums if cardNums.count(nums) >= 2];
 
-        if(len(pairCards) >= 4): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
-            return True; # @TODO Make this return a list of three numbers: The values of pair 1, pair 2, and the kicker
+        if(len(pairCards) >= 11): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
+            #print("pairCards9:",pairCards); # @DEBUG
+            sortedList = list(set(pairCards)); # @TODO Make this return a list of three numbers: The values of pair 1, pair 2, and the kicker
+            sortedList.sort(reverse=True);
+            #print(sortedList); # @DEBUG
+            return sortedList;
 
-        return False;
+        return -1;
 
 
     '''
-    Checks if the parents cards have a 3 of a kind. Returns 0 if there is not.
+    Checks if the parents cards have a 3 of a kind. Returns -1 if there is not.
 
     @param Card cards[]
     @return int threeOfAKindNum
@@ -85,13 +100,13 @@ class HandScanner: # @TODO make this not a class
             if(three):
                 return max(three);
 
-        return 0;
+        return -1;
 
     '''
-    Checks if the parents cards have a straight @TODO all this shit
+    Checks if the parents cards have a straight. Returns -1 if there is none.
 
     @param Card cards[]
-    @return boolean hasStraight
+    @return int straightHigh
     '''
     def checkStraight(self, cards):
         '''
@@ -124,16 +139,21 @@ class HandScanner: # @TODO make this not a class
                 if(cardNums[index] == (cardNums[index-1]+1)): # If this card is one higher than the last card, bump the counter and check its status
                     counter += 1;
                     if(counter >= 5):
-                        return True;
+                        oldIndex = 0;
+                        while(index < (len(cardNums)-1) and index != oldIndex):
+                            oldIndex = index;
+                            if((cardNums[index] == (cardNums[index-1]+1) or cardNums[index] == cardNums[index-1])):
+                                index += 1;
+                        return cardNums[index]; # Because this list is sorted, the number we're on is the highest card
                     continue;
                 elif(cardNums[index] == (cardNums[index-1])):
                     continue;
                 counter = 1; # If it got here, the last card was neither part of the sequence nor a dup, and therefore the counter should reset
 
-        return False;
+        return -1;
 
     '''
-    Checks if the parents cards have a flush. Don't check pre-flop. If there's a flush, it returns the cards' IDs. If not, returns 0
+    Checks if the parents cards have a flush. Don't check pre-flop. If there's a flush, it returns the cards' IDs. If not, returns -1
 
     @param Card cards[]
     @return int cardNums[]
@@ -155,15 +175,15 @@ class HandScanner: # @TODO make this not a class
                 break;
         
         if(count < 5):
-            return 0;
+            return -1;
 
-        return [card.getCardID() for card in cards if card.getCardSuit() == activeSuit];
+        return max([card.getCardNum() for card in cards if card.getCardSuit() == activeSuit]);
 
     '''
-    Checks the agent's hand for a full house
+    Checks the agent's hand for a full house. Returns -1 if there is none.
 
     @param Card cards[]
-    @return boolean hasFullHouse
+    @return int cards[threeOfAKind, pair] OR 0
     '''
     def checkFullHouse(self, cards):
         '''
@@ -177,12 +197,12 @@ class HandScanner: # @TODO make this not a class
         if(three):
             pair = [pairs for pairs in cardNums if (cardNums.count(pairs) >= 2 and pairs != max(three)) ]; # Can be 2 or 3, but NOT the max in three. This makes it such that if we have 2 three of a kinds, it'll still work.
             if(pair):
-                return True; # I did this so that there is reliability in what we are returning. The 5 extra cycles this takes shouldn't be a huge issue, but I'll mark it for profiling to be safe. @TODO Profile this @TODO Fix this return to be more usable
+                return [max(three), max(pair)]; # I did this so that there is reliability in what we are returning. The 5 extra cycles this takes shouldn't be a huge issue, but I'll mark it for profiling to be safe. @TODO Profile this @TODO Fix this return to be more usable
 
-        return False;
+        return -1;
 
     '''
-    Check the agent's hand for a four of a kind
+    Check the agent's hand for a four of a kind. Returns -1 if there is none.
 
     @param Card cards[]
     @return int fourOfAKindNum
@@ -196,13 +216,13 @@ class HandScanner: # @TODO make this not a class
         if(four):
             return max(four);
 
-        return 0;
+        return -1;
 
     '''
-    Checks the agent's hand for a straight flush
+    Checks the agent's hand for a straight flush. Returns -1 if there is none.
 
     @param Card cards[]
-    @return boolean hasStraightFlush
+    @return int straightHigh
     '''
     def checkStraightFlush(self, cards):
         '''
@@ -220,13 +240,13 @@ class HandScanner: # @TODO make this not a class
                 break;
             
         if(count < 5):
-            return False;
+            return -1;
 
         flushCards = [card for card in cards if card.getCardSuit() == activeSuit];
         return self.checkStraight(flushCards);
 
     '''
-    Checks the agent's hand for a five of a kind
+    Checks the agent's hand for a five of a kind. Returns -1 if there is none
 
     @param Card cards[]
     @return int fiveOfAKindNum
@@ -235,8 +255,8 @@ class HandScanner: # @TODO make this not a class
         cardNums = [card.getCardNum() for card in cards];
         five = [nums for nums in cardNums if cardNums.count(nums) >= 5];
         if(five):
-            return five[0];
-        return False;
+            return max(five);
+        return -1;
 
     '''
     Returns the enum value of the best hand in a set of cards. This can then be used to run the specific function for that hand to get more detailed info on it, if needed
@@ -245,23 +265,145 @@ class HandScanner: # @TODO make this not a class
     @return int bestHand
     '''
     def checkBestHand(self, cards): # I may throw the switch statement I talked about above (checkThreeOfAKind) in here... WTF PYTHON DOESN'T HAVE A SWITCH STATEMENT?!?
-        if(self.checkFiveOfAKind(cards)):
+        if(self.checkFiveOfAKind(cards) != -1):
             return HandIDs.FIVE_OF_A_KIND;
-        elif(self.checkStraightFlush(cards)):
+        elif(self.checkStraightFlush(cards) != -1):
             return HandIDs.STRAIGHT_FLUSH;
-        elif(self.checkFourOfAKind(cards)):
+        elif(self.checkFourOfAKind(cards) != -1):
             return HandIDs.FOUR_OF_A_KIND;
-        elif(self.checkFullHouse(cards)):
+        elif(self.checkFullHouse(cards) != -1):
             return HandIDs.FULL_HOUSE;
-        elif(self.checkFlush(cards)):
+        elif(self.checkFlush(cards) != -1):
             return HandIDs.FLUSH;
-        elif(self.checkStraight(cards)):
+        elif(self.checkStraight(cards) != -1):
             return HandIDs.STRAIGHT;
-        elif(self.checkThreeOfAKind(cards)):
+        elif(self.checkThreeOfAKind(cards) != -1):
             return HandIDs.THREE_OF_A_KIND;
-        elif(self.checkTwoPair(cards)):
+        elif(self.checkTwoPair(cards) != -1):
             return HandIDs.TWO_PAIR;
-        elif(self.checkPair(cards)):
+        elif(self.checkPair(cards) != -1):
             return HandIDs.PAIR;
         else:
             return HandIDs.HIGH_CARD;
+        #elif(self.checkHighCard(cards) != -1): # Commented out for performance
+        #   return HandIDs.HIGH_CARD;
+        #else:
+        #   print("Error! How did you get here? Exiting...");
+        #   sys.exit(302);
+
+
+    '''
+    Takes a list of hands and decides a winner. Note that the list of hands is a list of hole cards, not a list of 7 cards
+
+    @param Card hands[]
+    @param Board board
+    @return int winnerIndex. Returns a list if there's a tie.
+    '''
+    def declareWinner(self, hands, board):
+        bestHand = []; # Holds the list of best hands
+
+        for hand in hands:
+            #print("Hand",hands.index(hand),":  ",[card.getCardID().name for card in hand]); # @DEBUG
+            for card in board.getPool():
+                if(card not in hand):
+                    hand.append(card);
+
+            bestHand.append(self.checkBestHand(hand));
+            
+            print("Agent",hands.index(hand),"best hand:", HandIDs(bestHand[hands.index(hand)]).name);
+
+
+        #print("Best hand list:",bestHand); # @DEBUG
+
+        # Check if there's more than one of a best hand
+        bestID = HandIDs(max([hand.value for hand in bestHand]));
+
+        # If there is, tie break. Its probably faster to pass all the hands than to figure out which ones are tied, build a list of only them, and check that list
+        # NOTE: Because I didn't realize this had a looping dependency issue, and the lines for the called functions are very similar each time AND only a couple lines, I'm just moving them here. tb in this case refers to the old TieBreaker.py file
+        '''
+        if(bestHand.count(bestID) > 1):
+            if(bestID == HandIDs.HIGH_CARD):
+                return tb.breakHighCard(hands);
+            elif(bestID == HandIDs.PAIR):
+                return tb.breakPair(hands);
+            elif(bestID == HandIDs.TWO_PAIR):
+                return tb.breakTwoPair(hands);
+            elif(bestID == HandIDs.THREE_OF_A_KIND):
+                return tb.breakThreeOfAKind(hands);
+            elif(bestID == HandIDs.STRAIGHT):
+                return tb.breakStraight(hands);
+            elif(bestID == HandIDs.FLUSH):
+                return tb.breakFlush(hands);
+            elif(bestID == HandIDs.FULL_HOUSE):
+                return tb.breakFullHouse(hands);
+            elif(bestID == HandIDs.FOUR_OF_A_KIND):
+                return tb.breakFourOfAKind(hands);
+            elif(bestID == HandIDs.STRAIGHT_FLUSH):
+                return tb.breakStraightFlush(hands);
+            elif(bestID == HandIDs.FIVE_OF_A_KIND):
+                return tb.breakFiveOfAKind(hands);
+            else:
+                print("ERROR: Hand does not have a bestID in HandScanner.declareWinner. Exiting...");
+                sys.exit(301);
+            '''
+
+        if(bestHand.count(bestID) > 1):
+            if(bestID == HandIDs.HIGH_CARD):
+                vals = [self.checkHighCard(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+
+            elif(bestID == HandIDs.PAIR):
+                vals = [self.checkPair(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+
+            elif(bestID == HandIDs.TWO_PAIR):
+                #pdb.set_trace(); # @DEBUG
+                vals = [self.checkTwoPair(hand) for hand in hands];
+                firstPair = [val[0] for val in vals];
+                if(firstPair.count(max(firstPair)) > 1):
+                    secondPair = [val[1] for val in vals if val[0] == max(firstPair)];
+                    return [index for index in range(len(vals)) if(vals[index][0] == max(firstPair) and vals[index][1] == max(secondPair))];
+                else:
+                    return [index for index in range(len(vals)) if(vals[index][0] == max(firstPair))];
+            
+            elif(bestID == HandIDs.THREE_OF_A_KIND):
+                vals = [self.checkThreeOfAKind(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            elif(bestID == HandIDs.STRAIGHT):
+                vals = [self.checkStraight(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            elif(bestID == HandIDs.FLUSH):
+                vals = [self.checkFlush(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            elif(bestID == HandIDs.FULL_HOUSE):
+                vals = [self.checkFullHouse(hand) for hand in hands];
+                threeVals = [val[0] for val in vals];
+                if(threeVals.count(max(threeVals)) > 1):
+                    twoVals = [val[1] for val in vals if val[0] == max(threeVals)];
+                    return [index for index in range(len(vals)) if(vals[index][0] == max(threeVals) and vals[index][1] == max(twoVals))];
+                else:
+                    return [index for index in range(len(vals)) if(vals[index][0] == max(threeVals))];
+                    
+            
+            elif(bestID == HandIDs.FOUR_OF_A_KIND):
+                vals = [self.checkFourOfAKind(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            elif(bestID == HandIDs.STRAIGHT_FLUSH):
+                vals = [self.checkStraightFlush(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            elif(bestID == HandIDs.FIVE_OF_A_KIND):
+                vals = [self.checkFiveOfAKind(hand) for hand in hands];
+                return [index for index in range(len(vals)) if vals[index] == max(vals)];
+            
+            else:
+                print("ERROR: Hand does not have a bestID in HandScanner.declareWinner. Exiting...");
+                sys.exit(301);
+
+
+        else:
+            return bestHand.index(bestID);

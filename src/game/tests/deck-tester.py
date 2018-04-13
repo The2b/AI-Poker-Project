@@ -1,9 +1,9 @@
-import Deck
+from Deck import Deck
 import copy
 
-ourDeck = Deck.Deck(None,None);
+ourDeck = Deck(None,None);
 
-CardsDelt = copy.deepcopy(ourDeck.dealCards(10, None));
+CardsDelt = copy.deepcopy(ourDeck.dealCards(10));
 
 for Card in CardsDelt:
-    print(str(Card));
+    print(type(ourDeck));

@@ -18,7 +18,6 @@ import signal # cleanup
 
 import ipArgParser
 
-#__SLEEP_DURATION = 1; # @TODO Make this an arg too?
 __ITERATIONS = 10000000; # @TODO make this available as an arg
 __BATCH_SIZE = 10000;
 __PROCESS_COUNT = 12;
