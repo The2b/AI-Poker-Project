@@ -54,7 +54,8 @@ class Board:
 
     @param Card[] cardList
     '''
-    def __init__(self): # @TODO May want to change it to require a deck, since we'll need to use the same deck to deal out agent's hands.
+    def __init__(self, numDecks=1):
+        self.__deck = Deck(deckCount=numDecks);
         self.__deck.resetDeck();
 
         # Burn 1

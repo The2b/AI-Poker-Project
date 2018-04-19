@@ -124,11 +124,14 @@ class Card:
     @param int>0 idNum
     '''
     def __init__(self, idNum):
-        if(idNum >= 52):
-            idNum = idNum % 52;
-        elif(idNum < 0):
-            print("ERROR: Requested card ID is less than 0; exiting"); # @TODO I may want to change this to check for less than 1 instead, since I don't have a card defined for 0 as is. It's just as bad as having a threshold at -1, really
-            sys.exit(101);        
+        if(type(idNum) == int):
+            if(idNum >= 52):
+                idNum = idNum % 52;
+            elif(idNum < 0):
+                print("ERROR: Requested card ID is less than 0; exiting");
+                sys.exit(101);        
+        elif(type(idNum) == CardIDs):
+            idNum = idNum.value;
 
         self.__cardID = CardIDs(idNum);
         self.__cardNum = self.__calcCardNum();

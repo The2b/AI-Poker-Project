@@ -54,6 +54,14 @@ class HandScanner: # @TODO make this not a class
 
         cardNums = [card.getCardNum() for card in cards];
         pairs = [nums for nums in cardNums if cardNums.count(nums) >= 2];
+        
+        # Replaces Aces's 0 with 13, so that it treats the high-or-low ace properly
+        while(True):
+            try:
+                pairs[pairs.index(0)] = 13;
+            except:
+                break;
+
         if(pairs): # Basically, if this list is composed based on the restrictions we have set, there's at least one pair.
             return max(pairs);
 
@@ -73,7 +81,13 @@ class HandScanner: # @TODO make this not a class
         cardNums = [card.getCardNum() for card in cards];
         pairCards = [nums for nums in cardNums if cardNums.count(nums) >= 2];
 
-        if(len(pairCards) >= 11): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
+        while(True):
+            try:
+                pairCards[pairCards.index(0)] = 13;
+            except:
+                break;
+
+        if(len(pairCards) > 1): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
             #print("pairCards9:",pairCards); # @DEBUG
             sortedList = list(set(pairCards)); # @TODO Make this return a list of three numbers: The values of pair 1, pair 2, and the kicker
             sortedList.sort(reverse=True);
@@ -93,9 +107,15 @@ class HandScanner: # @TODO make this not a class
         '''
         Same as pair, but the value needs to exist three times. Don't check pre-flop
         '''
-        if(len(cards) >= 3): # May redo this. If so, it'll be such that the agent has a switch statement based on the stage, which executes different checks @TODO
+        if(len(cards) >= 3):
             cardNums = [card.getCardNum() for card in cards];
             three = [nums for nums in cardNums if cardNums.count(nums) >= 3];
+
+            while(True):
+                try:
+                    three[three.index(0)] = 13;
+                except:
+                    break;
 
             if(three):
                 return max(three);
@@ -193,11 +213,17 @@ class HandScanner: # @TODO make this not a class
 
         cardNums = [card.getCardNum() for card in cards];
 
+        while(True):
+            try:
+                cardNums[cardNums.index(0)] = 13;
+            except:
+                break;
+
         three = [nums for nums in cardNums if cardNums.count(nums) == 3]; # I went with == since if there are more than 3 of a card, this isn't the highest hand
         if(three):
             pair = [pairs for pairs in cardNums if (cardNums.count(pairs) >= 2 and pairs != max(three)) ]; # Can be 2 or 3, but NOT the max in three. This makes it such that if we have 2 three of a kinds, it'll still work.
             if(pair):
-                return [max(three), max(pair)]; # I did this so that there is reliability in what we are returning. The 5 extra cycles this takes shouldn't be a huge issue, but I'll mark it for profiling to be safe. @TODO Profile this @TODO Fix this return to be more usable
+                return [max(three), max(pair)];
 
         return -1;
 
@@ -213,6 +239,13 @@ class HandScanner: # @TODO make this not a class
         '''
         cardNums = [card.getCardNum() for card in cards];
         four = [nums for nums in cardNums if cardNums.count(nums) >= 4];
+
+        while(True):
+            try:
+                four[four.index(0)] = 13;
+            except:
+                break;
+
         if(four):
             return max(four);
 
@@ -254,6 +287,13 @@ class HandScanner: # @TODO make this not a class
     def checkFiveOfAKind(self, cards):
         cardNums = [card.getCardNum() for card in cards];
         five = [nums for nums in cardNums if cardNums.count(nums) >= 5];
+
+        while(True):
+            try:
+                five[five.index(0)] = 13;
+            except:
+                break;
+
         if(five):
             return max(five);
         return -1;

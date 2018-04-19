@@ -5,6 +5,12 @@
 @file AgentController.py
 '''
 
+import math
+import pdb
+
+import tensorflow as tf
+import numpy as np
+
 from AgentModel import AgentModel
 import OddsCalc as oc
 import OddsCalcPot
@@ -14,60 +20,121 @@ from Deck import Deck
 
 class AgentController:
     agent = 0;
+    ai = True;
     scanner = HandScanner();
+
+    lastArgs = [];
 
     __CARDS_IN_HAND = 2;
     __MARGIN = .05; # The margin for staying in if the pot odds are lower than the odds of winning, and for calling if they're higher. This is a %
     __POT_ODDS_RED_FLAG_AMT = .4; # Because pot odds can never be more than 50%, this should never exceed .5. .4 means that there's a huge influx of money compared to the old pot, so we need to take special consideration
-
-    def __init__(self, agentModel=0):
+    POT_BET_CAP = 1;
+    CSV_PATH = "temp.csv";
+    
+    def __init__(self, agentModel=0, csvPath=0, quiet=True, ai=True):
         if(agentModel != 0):
             self.agent = agentModel;
         else:
-            self.agent = AgentModel();
+            self.agent = AgentModel(quiet=quiet);
 
         self.resetAgent();
+        self.agent.oppoModel.setLearningRate(0.01);
 
-    def shouldBet(self, board):
-        # Calc pot odds
-        # Then calc odds of winning
-        # Determine which is greater
-        # (At least) call or fold
-        print("I'll bet");
+        self.ai = ai;
 
-    def shouldCheck(self, board):
-        # Basically, we'll only use this is we would otherwise fold, but there's no bet to the agent
-        print("I check");
+        if(csvPath != 0):
+            self.CSV_PATH = csvPath;
 
-    def shouldCall(self, board):
+    def addDataToModel(self, result, agentCashAtStartOfHand=-1, oppoCashAtStartOfHand=-1, oldPotValue=-1, lastAgentAction=-1, lastOppoAction=-1, oldBetAmount=-1, newBetAmount=-1, agentHand=[-1,-1], communityPool=[-1,-1,-1,-1,-1], victorOdds=[-1,-1,-1], gameStage=-1, cardsInDeck=-1):
+        fstream = open(self.CSV_PATH, 'a');
+
+        entry = "{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{:.1f},{}".format(float(agentCashAtStartOfHand),float(oppoCashAtStartOfHand),float(oldPotValue),float(lastAgentAction),float(lastOppoAction),float(oldBetAmount),float(newBetAmount),float(agentHand[0]),float(agentHand[1]),float(communityPool[0]),float(communityPool[1]),float(communityPool[2]),float(communityPool[3]),float(communityPool[4]),float(victorOdds[0]),float(victorOdds[1]),float(victorOdds[2]),float(gameStage),float(cardsInDeck),int(result));
+
+        fstream.write(entry);
+        fstream.write("\n");
+        fstream.close();
+
+        ds = tf.data.TextLineDataset.from_tensors(self.agent.oppoModel.parse_csv(entry));
+
+        self.agent.oppoModel.addDataToModel(ds);
+
+    def submitResult(self, result):
+        l = self.getLastArgs();
+        if(len(l) == 0):
+            return;
+
+        self.addDataToModel(result, l[0], l[1], l[2], l[3], l[4], l[5], l[6], l[7], l[8], l[9], l[10], l[11]);
+        return;
+
+    def call(self, board):
         # If the current pot odds are close to our chance of victory, use this
-        print("I call");
+        self.agent.addToCashInPot(board, board.getBet() - self.agent.getCashInPotThisRound());
+        print("Agent calls");
+        return 0;
 
-    def shouldRaise(self, board, raiseAmt):
+    def raiseBet(self, board, raiseTo):
         # If the odds of winning are far higher than the pot odds, choose this
         # Choose the amount based on the percentage of money left & the distance between the pot odds and odds of winning? @TODO
-        print("I raise");
+        if(self.raiseAgentBetTo(board, raiseTo)):
+            print("Agent raises the bet to",raiseTo);
+            board.setBet(raiseTo);
+            print("New pot:",board.getPot());
+            return 1;
 
-    def shouldFold(self, board):
+        else:
+            print("Could not raise bet");
+
+    def fold(self, board):
         # If there's too much of a bet to the agent for the risk
         print("I fold");
         self.agent.inGame = False;
+        return 2;
 
-    def makeDecision(self, board):
+    def raiseAgentBetTo(self, board, raiseTo):
+        return self.agent.addToCashInPot(board, raiseTo - self.agent.getCashInPotThisRound());
+    
+    def storeLastArgs(self, agentCashAtStartOfHand, oppoCashAtStartOfHand, oldPotValue, lastAgentAction, lastOppoAction, oldBetAmount, newBetAmount, agentHand, communityPool, victorOdds, gameStage, cardsInDeck):
+        poolCards = [-1 for i in range(5)];
+        agentHandIDs = [];
+
+        for index, card in enumerate(communityPool):
+            poolCards[index] = card.getCardID().value;
+
+        for card in agentHand:
+            agentHandIDs.append(card.getCardID().value);
+
+        self.lastArgs = [agentCashAtStartOfHand, oppoCashAtStartOfHand, oldPotValue, lastAgentAction, lastOppoAction, oldBetAmount, newBetAmount, agentHandIDs, poolCards, victorOdds, gameStage, cardsInDeck];
+        return;
+
+    def getLastArgs(self):
+        return self.lastArgs;
+
+    def makeDecision(self, board, agentStartingCash, oppoStartingCash, lastAgentAction, lastOppoAction, maxbet=-1):
+        if(board.getBet() == maxbet):
+            self.call(board);
         # Indexes for victorOdds below
         WIN = 0;
         LOSE = 1;
         TIE = 2;
 
         # Update our flags first
-        self.updateAgentFlags(board);
+        #self.updateAgentFlags(board);
+
 
         # Find pot odds
-        potOdds = OddsCalcPot.oddsCalcPot(board);
+        try:
+            potOdds = OddsCalcPot.oddsCalcPot(board);
+        except ZeroDivisionError:
+            print("Current pot:",board.getPot());
+            print("Current bet:",board.getBet());
+            pdb.set_trace();
 
         # Find our odds of victory, using our odds of a hand and our opponents odds of a hand
         # Just as a reminder, this is in the form [WIN, LOSE, TIE]
         victorOdds = oc.oddsCalc(self.buildHand(board), board);
+
+        # Store our data before we screw with anything
+        self.storeLastArgs(agentStartingCash, oppoStartingCash, board.getPot(), lastAgentAction, lastOppoAction, board.getBet(), 0, self.getHand(), board.getPool(), victorOdds, board.getStage().value, len(board.getDeck().getCards()));
 
         # If we're before the turn, consider a tie a loss. This will make it such that if there's enough in the pot, we'll still go, but if there's little, we won't risk it for basically nothing
         # After the turn, stick with it if there's a high chance of a tie
@@ -76,30 +143,158 @@ class AgentController:
         # If odds of victory are low compared to pot odds, bow out or check
         if(victorOdds[WIN] + self.__MARGIN < potOdds):
             if(board.getBet() == 0):
-                self.shouldCall();
+                return self.call(board);
             else:
-                self.shouldFold(board);
+                return self.fold(board);
 
         # If close, call
         elif(victorOdds[WIN] - self.__MARGIN <= potOdds and victorOdds[WIN] + self.__MARGIN >= potOdds):
-            self.shouldCall(board);
+            return self.call(board);
 
         # If if high, raise
         elif(victorOdds[WIN] - self.__MARGIN > potOdds):
-            self.shouldRaise(board, self.calcRaise(board)); # @TODO
+            return self.raiseBet(board, self.calcRaise(board, agentStartingCash, oppoStartingCash, lastAgentAction, lastOppoAction, victorOdds, maxBetAmt=maxbet) + board.getBet()); # @TODO
 
-        # This is most likely going to be an issue, as someone could simply all-in every time and make the agent fold
-        # Looking at it again, this won't be an issue, since pot odds can never exceed 50%
-        #if(potOdds > self.__POT_ODDS_RED_FLAG_AMT):
 
-    def calcRaise(self,  board):
-        pass;
+    '''
+    Note that this uses a pot-bet cap
+    '''
+    def calcRaise(self, board, agentStartingCash, oppoStartingCash, lastAgentAction, lastOppoAction, victorOdds, maxBetAmt=-1, oppoModel=0):
+        # A few methods of calculating how much to raise
+        # 1) Scale 1:1 cash to win odds
+        #return winOdds * self.agent.getCash();
+
+        # 2) Scale 1:1 cash to win odds, with a hard cap
+        #BET_CAP = 500;
+        #return min(winOdds * self.agent.getCash(), BET_CAP);
+
+        # 3) Scale the raise with our current cash, win rate, and the pot. Have a cap that scales with the pot
+        #POT_MULTI_LIMIT = 4;
+        #return min(board.getPot() * POT_MULTI_LIMIT, (()));
+
+        # 4) Scale it by our ideal pot odds, with a cap based on the pot. Basically doing a binary search for the pot odds we fail
+        #POT_MULTI_LIMIT = 4;
+        #return min(board.getPot() * POT_MULTI_LIMIT, (());
+
+        # First, find our max bet. The max we can raise is the amount in the pot after we call the previous bet.
+        currBet = board.getBet();
+        currPot = board.getPot();
+        winOdds = victorOdds[0];
+
+        poolCards = [-1 for i in range(5)];
+        for index, card in enumerate(board.getPool()):
+            poolCards[index] = card.getCardID().value;
+
+
+        if(maxBetAmt != -1):
+            maxRaise = min(maxBetAmt - board.getBet(), (currBet + currPot) * self.POT_BET_CAP);
+        else:
+            maxRaise = (currBet + currPot) * (self.POT_BET_CAP);
+        #print("Max raise:",maxRaise);
+        
+        # First, see if our max bet is worth it
+        maxBetPotOdds = OddsCalcPot.oddsCalcPotManual(currPot + maxRaise + currBet, currBet + maxRaise);
+        
+        prediction_dataset = tf.convert_to_tensor([
+            [np.float64(agentStartingCash), np.float64(oppoStartingCash), np.float64(currPot), np.float64(lastAgentAction), np.float64(lastOppoAction), np.float64(currBet), np.float64(maxRaise), np.float64(self.getHand()[0].getCardID().value), np.float64(self.getHand()[1].getCardID().value), np.float64(poolCards[0]), np.float64(poolCards[1]), np.float64(poolCards[2]), np.float64(poolCards[3]), np.float64(poolCards[4]), np.float64(victorOdds[0]), np.float64(victorOdds[1]), np.float64(victorOdds[2]), np.float64(board.getStage().value), np.float64(len(board.getDeck().getCards()))]
+            ]);
+
+        #print("Prediction data:",prediction_dataset);
+        #print("Type:",type(prediction_dataset));
+
+        res = self.agent.oppoModel.model(prediction_dataset);
+        #print("res type:",type(res));
+        print();
+        print("res:",res);
+        
+        realRes = tf.argmax(res, axis=1).numpy();
+        #print("RealRes type:",type(realRes));
+        print();
+        print("RealRes:",realRes);
+
+        #print("Predicted result of a bet of",maxRaise,":",["Call","Raise","Fold"][realRes]);
+
+        if(winOdds > maxBetPotOdds and max(realRes) < 2):
+            if(maxBetAmt != -1):
+                return min(maxRaise, self.agent.getCash(), maxBetAmt - board.getBet());
+            else:
+                return min(self.agent.getCash(), maxRaise);
+
+        # Use a binary search with a margin of, say, .05
+        testRange = [0, maxRaise];
+        MIN = 0; # Min index
+        MAX = 1; # Max index
+        MARGIN = .10;
+
+        lastTest = 0;
+
+        '''
+        while(True):
+            if(runs > 10):
+                #pdb.set_trace(); # @DEBUG
+                pass;
+
+            testAmt = math.floor((testRange[MAX] - testRange[MIN]) / 2);
+
+            potOdds = OddsCalcPot.oddsCalcPotManual(currBet + currPot + testAmt, currBet + testAmt);
+            if((winOdds + MARGIN >= potOdds and winOdds - MARGIN <= potOdds) or testAmt == maxRaise or (testAmt - lastTest <= 1)):
+                return min(maxRaise, testAmt);
+
+            if(winOdds + MARGIN > potOdds): # Here, we know it's out of our range
+                testRange[MIN] = testAmt;
+                lastTest = testAmt;
+                runs += 1;
+                continue;
+
+            elif(winOdds - MARGIN < potOdds):
+                testRange[MAX] = testAmt;
+                lastTest = testAmt;
+                runs += 1;
+                continue;
+        '''
+
+        # If we do have a viable opponent model, use this instead
+        while(True):
+            testAmt = math.floor((testRange[MAX] - testRange[MIN]) / 2);
+            print("Testing value:",testAmt);
+
+            if(testAmt == 0):
+                return 0;
+            
+            prediction_dataset = tf.convert_to_tensor([
+                [np.float64(agentStartingCash), np.float64(oppoStartingCash), np.float64(currPot), np.float64(lastAgentAction), np.float64(lastOppoAction), np.float64(currBet), np.float64(testAmt), np.float64(self.getHand()[0].getCardID().value), np.float64(self.getHand()[1].getCardID().value), np.float64(poolCards[0]), np.float64(poolCards[1]), np.float64(poolCards[2]), np.float64(poolCards[3]), np.float64(poolCards[4]), np.float64(victorOdds[0]), np.float64(victorOdds[1]), np.float64(victorOdds[2]), np.float64(board.getStage().value), np.float64(len(board.getDeck().getCards()))]
+            ]);
+
+            res = self.agent.oppoModel.model(prediction_dataset);
+            realRes = tf.argmax(res, axis=1).numpy();
+            print("realRes:",realRes);
+            #print("Predicted result of a bet of",testAmt,":",["Call","Raise","Fold"][realRes]);
+
+
+            potOdds = OddsCalcPot.oddsCalcPotManual(currBet + currPot + testAmt, currBet + testAmt);
+            if((max(realRes) == 2) or (winOdds - MARGIN < potOdds)):
+                testRange[MAX] = testAmt;
+                lastTest = testAmt;
+                continue;
+
+            if((max(realRes) < 2) and (winOdds + MARGIN >= potOdds and winOdds - MARGIN <= potOdds) or testAmt == maxRaise or (testAmt - lastTest <= 1)):
+                return min(maxRaise, testAmt);
+
+            if(winOdds + MARGIN > potOdds): # Here, we know it's out of our range
+                testRange[MIN] = testAmt;
+                lastTest = testAmt;
+                continue;
 
     def inGame(self):
         return self.agent.inGame;
 
+    def resetRound(self):
+        self.agent.resetCashInPotThisRound();
+        return;
+
     def resetAgent(self):
         self.agent.resetAgent();
+        self.lastArgs = [];
         return;
 
     def getHand(self):
@@ -122,9 +317,22 @@ class AgentController:
 
         return cards;
 
+    def getAgentCash(self):
+        return self.agent.getCash();
+
+    def setAgentCash(self, amt):
+        self.agent.setCash(amt);
+        return;
+
+    def getAgentCashInPotThisRound(self):
+        return self.agent.getCashInPotThisRound();
+
+    def isAgentSquare(self, board):
+        return (self.agent.getCashInPotThisRound() == board.getBet())
+
+    '''
     # @TODO
     def updateAgentFlags(self, board):
-        '''
         cards = self.buildHand(board);
         self.updateHighCardFlags(board, cards);
         self.updatePairFlags(board, cards);
@@ -136,10 +344,8 @@ class AgentController:
         self.updateFourOfAKind(board, cards);
         self.updateStraightFlushFlags(board, cards);
         self.updateFiveOfAKind(board, cards);
-        '''
         return;
     
-    # @TODO Refactor either these functions or all other similar functions for consistency. Specifically, most use (self, cards, board) but these do not, due tot he optional parameter of cards.
     def updateHighCardFlags(self, board, cards=0):
         if(cards == 0):
             self.buildHand(board);
@@ -287,3 +493,4 @@ class AgentController:
             self.agent.numThrees = len(set(num for num in numCount if num > 2));
         else:
             self.agent.numThrees = 0;
+    '''

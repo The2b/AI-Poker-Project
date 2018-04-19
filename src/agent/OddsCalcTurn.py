@@ -13,6 +13,7 @@ import multiprocessing as mp
 #import pdb # @DEBUG
 from copy import deepcopy
 from HandScanner import HandScanner, HandIDs
+from Card import Card, CardIDs
 
 NUM_PROCESSES = 12;
 
@@ -61,7 +62,12 @@ Handles the odds calcs for the using agent
 def oddsCalcTurnAgent(cards, board):
     # Build a list of all possible cards
     scanner = HandScanner();
-    validCards = [card for card in board.getDeck().getCards() if card not in cards];
+    
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(card);
+
     idList = [0 for hand in HandIDs];
 
     cardsCopy = deepcopy(cards);
@@ -94,7 +100,11 @@ def oddsCalcTurnOppo(cards, board):
     # Enumerate all the possible combos, check if they work
     scanner = HandScanner();
 
-    validCards = [card for card in board.getDeck().getCards() if(card not in cards)]; # Don't bother checking oppoCards, since that's a subset of this
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(Card(card));
+
     idList = [0 for hand in HandIDs];
 
     #pdb.set_trace(); # @DEBUG
@@ -140,7 +150,11 @@ def oddsCalcTurnOppoMP(cards, board):
     # Enumerate all the possible combos, check if they work
     scanner = HandScanner();
 
-    validCards = [card for card in board.getDeck().getCards() if(card not in cards)]; # Don't bother checking oppoCards, since that's a subset of this
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(Card(card));
+            
     idList = [0 for hand in HandIDs];
 
     #pdb.set_trace(); # @DEBUG

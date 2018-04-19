@@ -79,7 +79,7 @@ def cleanup(signum, frame):
 
 if __name__ == '__main__':
     # Create the connection to the worker nodes
-    # Because Dr. Perry asked me not to share the IPs, and this is going on GitHub, I'll configure it via arguments @TODO
+    # Because Dr. Perry asked me not to share the IPs, and this is going on GitHub, I'll configure it via arguments
     ipList = ipArgParser.getArgIPs(sys.argv);
     assert ipList != None;
     #print(ipList);

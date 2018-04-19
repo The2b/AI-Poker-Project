@@ -13,6 +13,7 @@ import multiprocessing as mp
 import sys # exit
 from copy import deepcopy
 from HandScanner import HandScanner, HandIDs
+from Card import Card, CardIDs
 
 '''
 Calculates the odds of victory, ties, and losses between exactly two agents
@@ -55,7 +56,12 @@ Handles the odds calcs for the using agent
 '''
 def oddsCalcRiverAgent(cards, board):
     scanner = HandScanner();
-    validCards = [card for card in board.getDeck().getCards() if card not in cards];
+
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(Card(card));
+
     idList = [0 for hand in HandIDs];
     oddsList = [];
 
@@ -89,7 +95,11 @@ def oddsCalcRiverOppo(cards, board):
     # Enumerate all the possible combos, check if they work
     scanner = HandScanner();
 
-    validCards = [card for card in board.getDeck().getCards() if(card not in cards)]; # Don't bother checking oppoCards, since that's a subset of this
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(Card(card));
+
     idList = [0 for hand in HandIDs];
 
     oppoCardsCopy = deepcopy(oppoCards);
@@ -135,7 +145,12 @@ def oddsCalcRiverOppoMP(cards, board):
     # Enumerate all the possible combos, check if they work
     scanner = HandScanner();
 
-    validCards = [card for card in board.getDeck().getCards() if(card not in cards)]; # Don't bother checking oppoCards, since that's a subset of this
+
+    validCards = [Card(card) for card in CardIDs if card not in [card.getCardID() for card in cards]];
+    for i in range(board.getDeck().getNumDecks() - 1):
+        for card in CardIDs:
+            validCards.append(Card(card));
+
     idList = [0 for hand in HandIDs];
 
     #pdb.set_trace(); # @DEBUG

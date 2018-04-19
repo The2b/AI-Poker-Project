@@ -43,41 +43,12 @@ def oddsCalc(cards, board):
     elif(board.getStage() == Stage.RIVER_BETTING_ROUND):
         victorOdds = OddsCalcFinal.oddsCalcFinal(cards, board);
 
-    # Nothing below this point should be in this function @TODO
-    potOdds = OddsCalcPot.oddsCalcPot(board);
-
-    # If we want strict wins v losses and to ignore ties and have a flat margin, use this.
+    '''
+    print();
     print("[WIN, LOSE, TIE]:",victorOdds); # @DEBUG
-    print("Pot odds:",potOdds);
-    '''
-    winsReal = victorOdds[WIN];
-    lossesReal = victorOdds[LOSE];
-    wins = (winsReal / (winsReal + lossesReal));
-    losses = (lossesReal / (winsReal + lossesReal));
-    
-    margin = MARGIN;
+    print();
     '''
 
-    # If we want the tie to be the margin, we can use this
-    '''
-    wins = victorOdds[WIN];
-    losses = victorOdds[LOSE];
-    margin = victorOdds[TIE];
-    '''
-
-    wins = victorOdds[WIN] + ((victorOdds[TIE] / 2) * (board.getStage().value >= Stage.TURN_BETTING_ROUND.value)); # The boolean logic at the end is meant to say that if we're after the turn, count a tie as half a win. If we're before the turn, don't count it at all
-    losses = victorOdds[LOSE] + ((victorOdds[TIE] / 2) * (board.getStage().value < Stage.TURN_BETTING_ROUND.value)) ; # Opposite of the previous
-
-    # Here, we just decide raw. Once we add in money, we'll add in the margin
-    if(wins > potOdds):
-        print("Stay in");
-    elif(wins < potOdds):
-        print("Fold");
-    elif(wins == potOdds):
-        print("Stay in. Even");
-    else:
-        print("ERROR: wins and loses not different or equal. Error 801");
-        sys.exit(801);
     return victorOdds;
 
 def oddsCalcPot(board):
