@@ -87,7 +87,7 @@ class HandScanner: # @TODO make this not a class
             except:
                 break;
 
-        if(len(pairCards) > 1): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
+        if(len(set(pairCards)) >= 2): # At least 2 pairs. If there's 3 or 4 of a kind, those'll check first and we won't bother w/ this function
             #print("pairCards9:",pairCards); # @DEBUG
             sortedList = list(set(pairCards)); # @TODO Make this return a list of three numbers: The values of pair 1, pair 2, and the kicker
             sortedList.sort(reverse=True);
@@ -193,11 +193,21 @@ class HandScanner: # @TODO make this not a class
             if(count >= 3):
                 activeSuit = suit;
                 break;
+
+        cardNums = [card.getCardNum() for card in cards if card.getCardSuit() == activeSuit];
+
+        while(True):
+            try:
+                cardNums[cardNums.index(0)] = 13;
+            except:
+                break;
         
+        cardNums.sort(reverse = True);
+
         if(count < 5):
             return -1;
 
-        return max([card.getCardNum() for card in cards if card.getCardSuit() == activeSuit]);
+        return [cardNums[0], cardNums[1], cardNums[2], cardNums[3], cardNums[4]];
 
     '''
     Checks the agent's hand for a full house. Returns -1 if there is none.
@@ -414,10 +424,33 @@ class HandScanner: # @TODO make this not a class
                 vals = [self.checkStraight(hand) for hand in hands];
                 return [index for index in range(len(vals)) if vals[index] == max(vals)];
             
-            elif(bestID == HandIDs.FLUSH):
+            elif(bestID == HandIDs.FLUSH): # Check all 5 nums
                 vals = [self.checkFlush(hand) for hand in hands];
-                return [index for index in range(len(vals)) if vals[index] == max(vals)];
-            
+                firstCard = [val[0] for val in vals];
+                highFirstCard = max(firstCard);
+
+                if(firstCard.count(highFirstCard) > 1):
+                    secondCard = [val[1] for val in vals if val[0] == highFirstCard];
+                    highSecondCard = max(secondCard);
+                    if(secondCard.count(highSecondCard) > 1):
+                        thirdCard = [val[2] for val in vals if(val[0] == highFirstCard and val[1] == highSecondCard)];
+                        highThirdCard = max(thirdCard);
+                        if(thirdCard.count(highThirdCard) > 1):
+                            fourthCard = [val[3] for val in vals if(val[0] == highFirstCard and val[1] == highSecondCard and val[2] == highThirdCard)];
+                            highFourthCard = max(fourthCard);
+                            if(fourthCard.count(highFourthCard) > 1):
+                                fifthCard = [val[4] for val in vals if(val[0] == highFirstCard and val[1] == highSecondCard and val[2] == highThirdCard and val[3] == highFourthCard)];
+                                highFifthCard = max(fifthCard);
+                                return [index for index,val in enumerate(vals)  if(val == [highFirstCard, highSecondCard, highThirdCard, highFourthCard, highFifthCard])];
+                            else:
+                                return [index for index,val in enumerate(vals)  if(val[:-1] == [highFirstCard, highSecondCard, highThirdCard, highFourthCard])];
+                        else:
+                            return [index for index,val in enumerate(vals)  if(val[:-2] == [highFirstCard, highSecondCard, highThirdCard])];
+                    else:
+                        return [index for index,val in enumerate(vals)  if(val[:-3] == [highFirstCard, highSecondCard])];
+                else:
+                    return [index for index,val in enumerate(vals) if(val[0] == highFirstCard)];
+
             elif(bestID == HandIDs.FULL_HOUSE):
                 vals = [self.checkFullHouse(hand) for hand in hands];
                 threeVals = [val[0] for val in vals];

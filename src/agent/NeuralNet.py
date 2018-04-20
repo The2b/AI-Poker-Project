@@ -48,7 +48,7 @@ import pdb
 class NeuralNet:
     model = 0;
     modelData = 0;
-    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001);
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001);
     quiet = False;
 
     def __init__(self, csvPath="/home/the2b/Documents/school/ai/project/src/test6.csv", dataUrl="http://127.0.0.1/test6.csv", epochs=501, skip=2, train=True, quiet=False):
@@ -166,10 +166,13 @@ class NeuralNet:
 
             if((epoch % 50 == 0) and not self.quiet):
                 print("Epoch {:03d}: Loss: {:.3f}, Accuracy: {:.3%}".format(epoch,epoch_loss_avg.result(),epoch_accuracy.result()))
-            if(epoch == 100):
-                self.setLearningRate(0.01);
-            if(epoch == 250):
-                self.setLearningRate(0.1);
+            if(self.optimizer._learning_rate == 0.0001):
+                if(epoch == 100):
+                    self.setLearningRate(0.001);
+                if(epoch == 250):
+                    self.setLearningRate(0.01);
+                if(epoch == 500):
+                    self.setLearningRate(0.1);
 
         #print("Model weights after training",self.model.get_weights());
 

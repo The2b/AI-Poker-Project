@@ -39,6 +39,7 @@ class AgentModel:
 
     # Flags to check if an agent is in the game. This should be changed for all agents at the start of each hand
     inGame = False;
+    hasBet = False;
 
     __hand = [];
 
@@ -47,8 +48,10 @@ class AgentModel:
     inPotThisRound = 0;
 
     oppoModel = 0;
+    CSV_PATH = 0;
+    URL = 0;
 
-    def __init__(self, quiet=True, build=True):
+    def __init__(self, csvPath, dataUrl, quiet = True, build = True):
         '''
         self.hasHighCard = False;
         self.hasPair = False;
@@ -78,13 +81,14 @@ class AgentModel:
 
         self.__hand = [];
         self.inGame = True;
+        self.hasBet = False;
 
         if(build):
-            self.oppoModel = NeuralNet(csvPath="/home/the2b/Documents/school/ai/project/src/temp.csv", dataUrl = "/home/the2b/Documents/school/ai/project/src/temp.csv", quiet=quiet);
-            #self.oppoModel = NeuralNet(quiet=quiet);
+            self.oppoModel = NeuralNet(csvPath = csvPath, dataUrl = dataUrl, quiet=quiet);
+            #self.oppoModel = NeuralNet(quiet = quiet);
 
     def resetAgent(self):
-        self.__init__(build=False);
+        self.__init__(self.CSV_PATH, self.URL, build=False);
 
     def getHand(self):
         return self.__hand;

@@ -6,7 +6,8 @@
 '''
 
 import math
-import pdb
+#import pdb
+import os
 
 import tensorflow as tf
 import numpy as np
@@ -30,20 +31,25 @@ class AgentController:
     __POT_ODDS_RED_FLAG_AMT = .4; # Because pot odds can never be more than 50%, this should never exceed .5. .4 means that there's a huge influx of money compared to the old pot, so we need to take special consideration
     POT_BET_CAP = 1;
     CSV_PATH = "temp.csv";
+    URL = "http://127.0.0.1/" + CSV_PATH;
     
-    def __init__(self, agentModel=0, csvPath=0, quiet=True, ai=True):
+    def __init__(self, agentModel=0, csvPath=0, dataUrl=0, quiet=True, ai=True):
+        if(csvPath != 0):
+            self.CSV_PATH = csvPath;
+        if(dataUrl != 0):
+            self.URL = dataUrl;
+        else:
+            self.URL = "http://127.0.0.1/"+csvPath;
+
         if(agentModel != 0):
             self.agent = agentModel;
         else:
-            self.agent = AgentModel(quiet=quiet);
+            self.agent = AgentModel(self.CSV_PATH, self.URL, quiet=quiet);
 
         self.resetAgent();
         self.agent.oppoModel.setLearningRate(0.01);
 
         self.ai = ai;
-
-        if(csvPath != 0):
-            self.CSV_PATH = csvPath;
 
     def addDataToModel(self, result, agentCashAtStartOfHand=-1, oppoCashAtStartOfHand=-1, oldPotValue=-1, lastAgentAction=-1, lastOppoAction=-1, oldBetAmount=-1, newBetAmount=-1, agentHand=[-1,-1], communityPool=[-1,-1,-1,-1,-1], victorOdds=[-1,-1,-1], gameStage=-1, cardsInDeck=-1):
         fstream = open(self.CSV_PATH, 'a');
@@ -69,6 +75,7 @@ class AgentController:
     def call(self, board):
         # If the current pot odds are close to our chance of victory, use this
         self.agent.addToCashInPot(board, board.getBet() - self.agent.getCashInPotThisRound());
+        self.setHasBet(True);
         print("Agent calls");
         return 0;
 
@@ -76,6 +83,7 @@ class AgentController:
         # If the odds of winning are far higher than the pot odds, choose this
         # Choose the amount based on the percentage of money left & the distance between the pot odds and odds of winning? @TODO
         if(self.raiseAgentBetTo(board, raiseTo)):
+            self.setHasBet(True);
             print("Agent raises the bet to",raiseTo);
             board.setBet(raiseTo);
             print("New pot:",board.getPot());
@@ -87,6 +95,7 @@ class AgentController:
     def fold(self, board):
         # If there's too much of a bet to the agent for the risk
         print("I fold");
+        self.setHasBet(True);
         self.agent.inGame = False;
         return 2;
 
@@ -288,7 +297,15 @@ class AgentController:
     def inGame(self):
         return self.agent.inGame;
 
+    def hasBet(self):
+        return self.agent.hasBet;
+
+    def setHasBet(self, haveThey):
+        self.agent.hasBet = haveThey;
+        return;
+
     def resetRound(self):
+        self.agent.hasBet = False;
         self.agent.resetCashInPotThisRound();
         return;
 

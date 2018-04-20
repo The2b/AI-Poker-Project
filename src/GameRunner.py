@@ -13,7 +13,7 @@ Manages agents, runs the game
 '''
 
 import sys # argv, exit
-#import pdb # @DEBUG
+import pdb # @DEBUG
 #import cProfile # @DEBUG
 #import timeit # @DEBUG
 
@@ -22,9 +22,10 @@ from AgentController import AgentController
 from HandScanner import HandScanner
 
 NUM_AGENTS = 2;
-MAX_BETS = 4;
 ANTE = 100;
 STARTING_CASH = 20000;
+CSV_PATH = "/home/the2b/Documents/school/ai/project/src/csv/test6.csv";
+CSV_URL = "http://127.0.0.1/test6.csv";
 
 def printHelp():
     pass;
@@ -39,7 +40,7 @@ def pcTurn(agent, board, maxBet):
     print("Current pot:",board.getPot());
     print("Current stage:",board.getStage().name);
     print();
-    cmd = input("Command (c[all],f[old],q[uit],BetAmount(#)): ");
+    cmd = input("Command (c[all], f[old], q[uit], BetAmount(#)): ");
     try:
         if(cmd[0] == 'c'):
             agent.call(board);
@@ -54,7 +55,7 @@ def pcTurn(agent, board, maxBet):
                 print("Not all players acn afford that amount");
                 print("Maximum bet:",maxBet);
                 return -1;
-            elif(int(cmd) < board.getBet() - agent.getAgentCashInPotThisRound()):
+            elif(int(cmd) <= board.getBet() - agent.getAgentCashInPotThisRound()):
                 print("Must at least exceed the bet to you by 1 chip if you want to raise.");
                 return -1;
             else:
@@ -65,7 +66,7 @@ def pcTurn(agent, board, maxBet):
     except IndexError:
         return -1;
 
-def makeGame(csvPath):
+def makeGame(csvPath, url):
     '''
     try:
         assert type(sys.argv[1]) == int;
@@ -81,13 +82,10 @@ def makeGame(csvPath):
     '''
     agents = [];
     for i in range(NUM_AGENTS):
-        agents.append(AgentController(csvPath=csvPath));
+        agents.append(AgentController(csvPath=csvPath, dataUrl=url));
 
     [agent.setAgentCash(STARTING_CASH) for agent in agents];
 
-    running = True;
-
-    bets = 0;
     while(min([agent.getAgentCash() for agent in agents]) > ANTE):
         print();
         print();
@@ -112,11 +110,11 @@ def makeGame(csvPath):
 
         # And the game loop. This is done as long as there is more than one agent in the game, and we are not finished with the final betting round
         while([agent.inGame() for agent in agents].count(True) > 1 and board.getStage() != Stage.SHOWDOWN):
-            while([agent.isAgentSquare(board) for agent in agents if agent.inGame()].count(False) > 0 and len([agent for agent in agents if agent.inGame()]) > 1):
+            while(([agent.isAgentSquare(board) for agent in agents if agent.inGame()].count(False) > 0 and len([agent for agent in agents if agent.inGame()]) > 1) or [agent.hasBet() for agent in agents if agent.inGame()].count(False) > 0):
                 for index, agent in enumerate(agents):
                     #if(bets >= MAX_BETS):
                     #    break;
-                    if(agent.inGame() and not agent.isAgentSquare(board)):
+                    if((agent.inGame() and not agent.isAgentSquare(board)) or (not agent.hasBet())):
                         maxBet = min([agent.getAgentCash() + agent.getAgentCashInPotThisRound() for agent in agents if agent.inGame()]);
 
                         if(agent.ai):
@@ -161,7 +159,7 @@ def makeGame(csvPath):
             # Change the stage
             board.setStage(board.getStage().nextStage());
             [agent.resetRound() for agent in agents];
-            board.setBet(1);
+            board.setBet(0);
             print("\nStage:",board.getStage(),"\n");
 
         # One winner or in showdown
@@ -203,7 +201,7 @@ def makeGame(csvPath):
 
 
 if __name__ == '__main__':
-    makeGame("/home/the2b/Documents/school/ai/project/src/test6.csv");
+    makeGame(csvPath=CSV_PATH, url=CSV_URL);
     #cProfile.run('makeGame()');
     #timer = timeit.timeit(stmt="makeGame()", setup="from __main__ import makeGame", number=100);
     #print("Time over 100 iterations:",timer);
